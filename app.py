@@ -1,6 +1,6 @@
 import os
 #from dotenv import load_dotenv
-from google import genai  # <-- Updated to modern Google SDK
+from google.genai import types  # <-- Updated to modern Google SDK
 from PIL import Image
 import streamlit as st
 
@@ -16,7 +16,7 @@ if not GOOGLE_API_KEY:
     st.stop() 
 
 # Initialize the modern client (automatically uses the stable production routing)
-client = genai.Client(api_key=GOOGLE_API_KEY)
+client = genai.Client()
 
 
 # =====================================================================
