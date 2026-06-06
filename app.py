@@ -1,5 +1,5 @@
 import os
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 from google import genai  # <-- Updated to modern Google SDK
 from PIL import Image
 import streamlit as st
@@ -7,7 +7,7 @@ import streamlit as st
 # =====================================================================
 # 1. ENVIRONMENT & API CONFIGURATION
 # =====================================================================
-load_dotenv()
+#load_dotenv()
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
