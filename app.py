@@ -59,15 +59,6 @@ def get_wellnest_response(input_prompt, image_payload=None):
 # =====================================================================
 st.set_page_config(page_title="Wellnest Hub", layout="wide", page_icon="🪹")
 
-# --- FIXED: PRE-CALCULATE DYNAMIC BMI BEFORE RENDERING SIDEBAR OR PAGES ---
-current_w = float(st.session_state.wellnest_profile.get("weight", 70.0))
-current_h = float(st.session_state.wellnest_profile.get("height", 170.0))
-h_m_live = current_h / 100
-live_bmi_calc = round(current_w / (h_m_live ** 2), 1)
-
-# Write the calculated value directly back to state so all components stay perfectly grouped
-st.session_state.wellnest_profile["bmi"] = live_bmi_calc
-
 # --- HEADER SECTION ---
 st.title("🪹 Wellnest")
 st.markdown("*Your organized sanctuary for mindful living and holistic health.*")
@@ -77,7 +68,9 @@ with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3062/3062634.png", width=100)
     st.subheader("🌿 Nest Status")
     st.info(f"**Current Page:** \n{st.session_state.current_page}\n\n**Current Focus:** \n{st.session_state.app_goal}")
-    st.metric("Your BMI", st.session_state.wellnest_profile["bmi"])
+    
+    # Reads the active BMI calculation dynamically out of state loop
+    st.metric("Your BMI", st.session_state.wellnest_profile.get("bmi", 24.2))
     st.write("---")
     st.caption("Click the buttons at the top of the main screen to switch dashboards.")
 
@@ -124,8 +117,18 @@ if st.session_state.current_page == "📊 My Baseline":
         u_activity = st.selectbox("Activity Level", ["Sedentary", "Lightly Active", "Moderately Active", "Very Active"], 
                                  index=["Sedentary", "Lightly Active", "Moderately Active", "Very Active"].index(st.session_state.wellnest_profile["activity_level"]))
         
-        # FIXED: Displays the instant pre-calculated metric value cleanly
-        st.metric("Calculated BMI", st.session_state.wellnest_profile["bmi"])
+        # Real-time execution loop runs instantly when user modifies an input field on screen
+        h_m_live = u_height / 100
+        live_bmi_calc = round(u_weight / (h_m_live ** 2), 1)
+        
+        # Sync elements down into the state dict dictionary smoothly
+        st.session_state.wellnest_profile["bmi"] = live_bmi_calc
+        st.session_state.wellnest_profile["weight"] = u_weight
+        st.session_state.wellnest_profile["height"] = u_height
+        st.session_state.wellnest_profile["age"] = u_age
+        st.session_state.wellnest_profile["activity_level"] = u_activity
+        
+        st.metric("Calculated BMI", live_bmi_calc)
         
     st.write("---")
     st.markdown("#### Deep Profile Details")
@@ -137,11 +140,14 @@ if st.session_state.current_page == "📊 My Baseline":
 
     if st.button("Save & Sync My Baseline"):
         st.session_state.wellnest_profile.update({
-            "weight": u_weight, "height": u_height, "age": u_age, "activity_level": u_activity, 
-            "bmi": st.session_state.wellnest_profile["bmi"], "intentions": u_intentions, 
-            "vibe": u_vibe, "stress_level": u_stress, "dietary_style": u_diet, "sensitivities": u_sensitivities
+            "intentions": u_intentions, 
+            "vibe": u_vibe, 
+            "stress_level": u_stress, 
+            "dietary_style": u_diet, 
+            "sensitivities": u_sensitivities
         })
         st.success("Physical profile synced to the Nest!")
+        st.rerun() # Refresh layout so sidebar indicator jumps to new value cleanly
 
 # --- PAGE 2: Nourishment ---
 elif st.session_state.current_page == "🥗 Nourishment":
