@@ -63,14 +63,11 @@ st.set_page_config(page_title="Wellnest Hub", layout="wide", page_icon="🪹")
 st.title("🪹 Wellnest")
 st.markdown("*Your organized sanctuary for mindful living and holistic health.*")
 
-# --- PERSISTENT SIDEBAR (Summary Only) ---
+# --- PERSISTENT SIDEBAR (Clean & Streamlined) ---
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3062/3062634.png", width=100)
     st.subheader("🌿 Nest Status")
     st.info(f"**Current Page:** \n{st.session_state.current_page}\n\n**Current Focus:** \n{st.session_state.app_goal}")
-    
-    # Reads the active BMI calculation dynamically out of state loop
-    st.metric("Your BMI", st.session_state.wellnest_profile.get("bmi", 24.2))
     st.write("---")
     st.caption("Click the buttons at the top of the main screen to switch dashboards.")
 
@@ -117,11 +114,11 @@ if st.session_state.current_page == "📊 My Baseline":
         u_activity = st.selectbox("Activity Level", ["Sedentary", "Lightly Active", "Moderately Active", "Very Active"], 
                                  index=["Sedentary", "Lightly Active", "Moderately Active", "Very Active"].index(st.session_state.wellnest_profile["activity_level"]))
         
-        # Real-time execution loop runs instantly when user modifies an input field on screen
+        # Real-time BMI processing loop
         h_m_live = u_height / 100
         live_bmi_calc = round(u_weight / (h_m_live ** 2), 1)
         
-        # Sync elements down into the state dict dictionary smoothly
+        # Instant session state save parameters
         st.session_state.wellnest_profile["bmi"] = live_bmi_calc
         st.session_state.wellnest_profile["weight"] = u_weight
         st.session_state.wellnest_profile["height"] = u_height
@@ -147,7 +144,7 @@ if st.session_state.current_page == "📊 My Baseline":
             "sensitivities": u_sensitivities
         })
         st.success("Physical profile synced to the Nest!")
-        st.rerun() # Refresh layout so sidebar indicator jumps to new value cleanly
+        st.rerun()
 
 # --- PAGE 2: Nourishment ---
 elif st.session_state.current_page == "🥗 Nourishment":
