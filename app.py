@@ -20,10 +20,10 @@ client = Client()
 # =====================================================================
 if "wellnest_profile" not in st.session_state:
     st.session_state.wellnest_profile = {
-        "intentions": "Increase daily energy and eat mindfully.",
-        "vibe": "Desk job, moderately active.",
-        "stress_level": "Moderate.",
-        "dietary_style": "Whole foods focus.",
+        "intentions": "Increase daily energy, build functional strength, and eat mindfully.",
+        "vibe": "Desk job environment, focus on consistent daily movement and gym routines.",
+        "stress_level": "Moderate corporate or operational environment stress.",
+        "dietary_style": "Whole food nutrition foundation focusing on balanced macronutrients.",
         "sensitivities": "None.",
         "weight": 70.0,
         "height": 170.0,
@@ -35,7 +35,6 @@ if "wellnest_profile" not in st.session_state:
 if "app_goal" not in st.session_state:
     st.session_state.app_goal = "General Health Alignment"
 
-# NEW: Tracks which page button is currently active
 if "current_page" not in st.session_state:
     st.session_state.current_page = "📊 My Baseline"
 
@@ -59,6 +58,15 @@ def get_wellnest_response(input_prompt, image_payload=None):
 # 4. STREAMLIT UI & INTERFACE LAYOUT
 # =====================================================================
 st.set_page_config(page_title="Wellnest Hub", layout="wide", page_icon="🪹")
+
+# --- FIXED: PRE-CALCULATE DYNAMIC BMI BEFORE RENDERING SIDEBAR OR PAGES ---
+current_w = float(st.session_state.wellnest_profile.get("weight", 70.0))
+current_h = float(st.session_state.wellnest_profile.get("height", 170.0))
+h_m_live = current_h / 100
+live_bmi_calc = round(current_w / (h_m_live ** 2), 1)
+
+# Write the calculated value directly back to state so all components stay perfectly grouped
+st.session_state.wellnest_profile["bmi"] = live_bmi_calc
 
 # --- HEADER SECTION ---
 st.title("🪹 Wellnest")
@@ -116,20 +124,22 @@ if st.session_state.current_page == "📊 My Baseline":
         u_activity = st.selectbox("Activity Level", ["Sedentary", "Lightly Active", "Moderately Active", "Very Active"], 
                                  index=["Sedentary", "Lightly Active", "Moderately Active", "Very Active"].index(st.session_state.wellnest_profile["activity_level"]))
         
-        # BMI Calculation Logic
-        h_m = u_height / 100
-        bmi_calc = round(u_weight / (h_m ** 2), 1)
-        st.metric("Calculated BMI", bmi_calc)
+        # FIXED: Displays the instant pre-calculated metric value cleanly
+        st.metric("Calculated BMI", st.session_state.wellnest_profile["bmi"])
         
     st.write("---")
     st.markdown("#### Deep Profile Details")
-    u_intentions = st.text_area("Core Intentions", st.session_state.wellnest_profile["intentions"])
+    u_intentions = st.text_area("Core Intentions & Goals", st.session_state.wellnest_profile["intentions"])
+    u_vibe = st.text_area("Daily Rhythm & Activity Summary", st.session_state.wellnest_profile["vibe"])
+    u_stress = st.text_area("Current Stress Levels", st.session_state.wellnest_profile["stress_level"])
     u_diet = st.text_area("Dietary Philosophy", st.session_state.wellnest_profile["dietary_style"])
+    u_sensitivities = st.text_area("Sensitivities & Restrictions", st.session_state.wellnest_profile["sensitivities"])
 
     if st.button("Save & Sync My Baseline"):
         st.session_state.wellnest_profile.update({
             "weight": u_weight, "height": u_height, "age": u_age, "activity_level": u_activity, 
-            "bmi": bmi_calc, "intentions": u_intentions, "dietary_style": u_diet
+            "bmi": st.session_state.wellnest_profile["bmi"], "intentions": u_intentions, 
+            "vibe": u_vibe, "stress_level": u_stress, "dietary_style": u_diet, "sensitivities": u_sensitivities
         })
         st.success("Physical profile synced to the Nest!")
 
@@ -140,7 +150,7 @@ elif st.session_state.current_page == "🥗 Nourishment":
     
     if st.button("Weave My Nourishment Plan"):
         with st.spinner("Weaving..."):
-            nourish_prompt = f"Holistic meal plan for: {st.session_state.wellnest_profile}. Focus: {st.session_state.app_goal}. Extra: {extra_needs}"
+            nourish_prompt = f"Holistic meal plan for: {st.session_state.wellnest_profile}. Focus target area: {st.session_state.app_goal}. Extra structural constraints: {extra_needs}"
             response = get_wellnest_response(nourish_prompt)
             st.markdown(response)
 
@@ -162,7 +172,7 @@ elif st.session_state.current_page == "🔮 Health Oracle":
     oracle_query = st.text_input("Pose your question...")
     if st.button("Consult Oracle"):
         with st.spinner("Consulting..."):
-            prompt = f"Question: {oracle_query}. User Profile: {st.session_state.wellnest_profile}. Mode: {st.session_state.app_goal}"
+            prompt = f"Question: {oracle_query}. User Profile Context: {st.session_state.wellnest_profile}. Mode: {st.session_state.app_goal}"
             st.markdown(get_wellnest_response(prompt))
 
 # --- PAGE 5: Daily Rituals ---
